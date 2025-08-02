@@ -7,42 +7,9 @@
   <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="/css/admin.css" rel="stylesheet">
 
-  <style>
-    body {
-      background-color: #f8f9fa;
-    }
-    .sidebar {
-      width: 200px;
-      height: 100vh;
-      background-color: #fff;
-      border-right: 1px solid #dee2e6;
-      position: fixed;
-      top: 56px;
-      left: 0;
-    }
-    .sidebar .nav-link {
-      color: #000;
-    }
-    .sidebar .nav-link.active {
-      background-color: #0d6efd;
-      color: #fff;
-    }
-    .main-content {
-      margin-left: 200px;
-      padding: 2rem;
-    }
-    .navbar-custom {
-      background-color: #343a40;
-      color: white;
-    }
-    .navbar-custom .navbar-text {
-      color: white;
-    }
-    .table th, .table td {
-      vertical-align: middle;
-    }
-  </style>
+
 </head>
 <body>
 
@@ -65,34 +32,10 @@
 
 <!-- Main content -->
 <div class="main-content">
-
-  <div th:if="${editSuccess}" class="alert alert-success alert-dismissible fade show" role="alert">
-    <strong th:text="${editSuccess}"></strong>
-    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-  </div>
+  <!-- Alert container for messages -->
+  <div id="alertContainer"></div>
 
   <h2>Admin panel</h2>
-
-  <!-- Success message for user addition -->
-  <div th:if="${addSuccess}" class="alert alert-success alert-dismissible fade show" role="alert">
-    <strong th:text="${addSuccess}"></strong>
-    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-  </div>
-
-  <!-- Error message for user addition -->
-  <div th:if="${errors}" class="alert alert-danger alert-dismissible fade show" role="alert">
-    <strong>Errors:</strong>
-    <ul>
-      <li th:each="error : ${errors}" th:text="${error.defaultMessage}"></li>
-    </ul>
-    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-  </div>
-
-  <!-- Delete success message -->
-  <div th:if="${deleteSuccess}" class="alert alert-success alert-dismissible fade show" role="alert">
-    <strong th:text="${deleteSuccess}"></strong>
-    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-  </div>
 
   <!-- Nav tabs -->
   <ul class="nav nav-tabs mb-3">
@@ -100,79 +43,84 @@
       <a class="nav-link active" href="#">All Users</a>
     </li>
     <li class="nav-item">
-      <button type="button" class="nav-link btn btn-link" data-bs-toggle="modal" data-bs-target="#exampleModal">
+      <button type="button" class="nav-link btn btn-link" data-bs-toggle="modal" data-bs-target="#addUserModal">
         <i class="bi bi-person-plus-fill"></i> New User
       </button>
     </li>
   </ul>
 
   <!-- Users table -->
-  <table class="table table-bordered table-hover">
-    <thead class="table-light">
-    <tr>
-      <th>ID</th>
-      <th>First Name</th>
-      <th>Last Name</th>
-      <th>Age</th>
-      <th>Email</th>
-      <th>Role</th>
-      <th>Edit</th>
-      <th>Delete</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr th:each="user : ${users}">
-      <td th:text="${user.id}"></td>
-      <td th:text="${user.firstName}"></td>
-      <td th:text="${user.lastName}"></td>
-      <td th:text="${user.age}"></td>
-      <td th:text="${user.email}"></td>
-      <td th:text="${user.roles.iterator().next().name}"></td>
-      <td>
-        <button type="button"
-                class="btn btn-info text-white editBtn"
-                data-bs-toggle="modal"
-                data-bs-target="#editModal"
-                th:data-id="${user.id}"
-                th:data-firstname="${user.firstName}"
-                th:data-lastname="${user.lastName}"
-                th:data-age="${user.age}"
-                th:data-email="${user.email}"
-                th:data-roles="${#strings.listJoin(user.roles, ',')}">
-          Edit
-        </button>
-      </td>
-      <td>
-        <form th:action="@{'/admin/delete/' + ${user.id}}" method="post" class="deleteForm" style="display:inline">
-          <button type="button" class="btn btn-danger btn-sm deleteBtn">Delete</button>
-        </form>
-      </td>
-    </tr>
-    </tbody>
-  </table>
+  <div class="table-responsive">
+    <table class="table table-bordered table-hover" id="usersTable">
+      <thead class="table-light">
+      <tr>
+        <th>ID</th>
+        <th>First Name</th>
+        <th>Last Name</th>
+        <th>Age</th>
+        <th>Email</th>
+        <th>Role</th>
+        <th>Edit</th>
+        <th>Delete</th>
+      </tr>
+      </thead>
+      <tbody id="usersTableBody">
+        <!-- Users will be populated dynamically -->
+      </tbody>
+    </table>
+  </div>
+  
+  <!-- Loading spinner for table -->
+  <div id="tableLoading" class="text-center d-none">
+    <div class="spinner-border" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
 </div>
 
 <!-- Add User Modal -->
-<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+<div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content rounded-4 shadow">
       <div class="modal-header bg-primary text-white">
-        <h5 class="modal-title" id="exampleModalLabel">Add New User</h5>
+        <h5 class="modal-title" id="addUserModalLabel">Add New User</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <form id="addUserForm" method="post" th:action="@{/api/users}" th:object="${newUser}" onsubmit="return confirmAddUser(event)">
+      <form id="addUserForm">
         <div class="modal-body">
-          <input type="text" th:field="*{firstName}" class="form-control mb-2" placeholder="First Name" required>
-          <input type="text" th:field="*{lastName}" class="form-control mb-2" placeholder="Last Name" required>
-          <input type="number" th:field="*{age}" class="form-control mb-2" placeholder="Age" required>
-          <input type="email" th:field="*{email}" class="form-control mb-2" placeholder="Email" required>
-          <input type="password" th:field="*{password}" class="form-control mb-2" placeholder="Password" required>
-          <select multiple name="roles" class="form-select" >
-            <option th:each="role : ${allRoles}" th:value="${role.id}" th:text="${role.name}"></option>
-          </select>
+          <div class="mb-3">
+            <label for="add-firstName" class="form-label">First Name</label>
+            <input type="text" id="add-firstName" name="firstName" class="form-control" placeholder="First Name" required>
+          </div>
+          <div class="mb-3">
+            <label for="add-lastName" class="form-label">Last Name</label>
+            <input type="text" id="add-lastName" name="lastName" class="form-control" placeholder="Last Name" required>
+          </div>
+          <div class="mb-3">
+            <label for="add-age" class="form-label">Age</label>
+            <input type="number" id="add-age" name="age" class="form-control" placeholder="Age" required>
+          </div>
+          <div class="mb-3">
+            <label for="add-email" class="form-label">Email</label>
+            <input type="email" id="add-email" name="email" class="form-control" placeholder="Email" required>
+          </div>
+          <div class="mb-3">
+            <label for="add-password" class="form-label">Password</label>
+            <input type="password" id="add-password" name="password" class="form-control" placeholder="Password" required>
+          </div>
+          <div class="mb-3">
+            <label for="add-roles" class="form-label">Roles</label>
+            <select multiple id="add-roles" name="roleIds" class="form-select" required>
+              <!-- Roles will be populated dynamically -->
+            </select>
+          </div>
         </div>
         <div class="modal-footer">
-          <button type="submit" class="btn btn-success px-4">Add User</button>
+          <button type="submit" class="btn btn-success px-4" id="addUserBtn">
+            <span class="spinner-border spinner-border-sm d-none" role="status"></span>
+            Add User
+          </button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
         </div>
       </form>
     </div>
@@ -180,14 +128,14 @@
 </div>
 
 <!-- Edit User Modal -->
-<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+<div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content rounded-4 shadow">
       <div class="modal-header bg-primary text-white">
-        <h5 class="modal-title" id="editModalLabel">Edit User</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <h5 class="modal-title" id="editUserModalLabel">Edit User</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <form id="editUserForm" method="post" th:action="@{/admin/update}">
+      <form id="editUserForm">
         <div class="modal-body">
           <input type="hidden" id="edit-id" name="id"/>
 
@@ -212,171 +160,34 @@
           </div>
 
           <div class="mb-3">
-            <label for="edit-password" class="form-label">Password</label>
-            <input type="password" id="edit-password" name="password" class="form-control" placeholder="Password" required>
+            <label for="edit-password" class="form-label">Password (leave empty to keep current)</label>
+            <input type="password" id="edit-password" name="password" class="form-control" placeholder="Password">
           </div>
 
           <div class="mb-3">
             <label for="edit-roles" class="form-label">Roles</label>
             <select multiple id="edit-roles" name="roleIds" class="form-select" required>
-              <option th:each="role : ${allRoles}" th:value="${role.id}" th:text="${role.name}"></option>
+              <!-- Roles will be populated dynamically -->
             </select>
           </div>
         </div>
 
         <div class="modal-footer">
-          <button type="submit" class="btn btn-primary px-4">Update User</button>
-          <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
-
+          <button type="submit" class="btn btn-primary px-4" id="editUserBtn">
+            <span class="spinner-border spinner-border-sm d-none" role="status"></span>
+            Update User
+          </button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
         </div>
       </form>
     </div>
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js">
-  document.addEventListener("DOMContentLoaded", function () {
-    const editButtons = document.querySelectorAll('.editBtn')
-
-    editButtons.forEach(button =>{
-      button.addEventListener('click', function () {
-        const id = this.getAttribute('data-id');
-        const firstName = this.getAttribute('data-firstname');
-        const lastName = this.getAttribute('data-lastname');
-        const age = this.getAttribute('data-age');
-        const email = this.getAttribute('data-email');
-
-        // Set the values into the form fields
-        document.getElementById('edit-id').value = id;
-        document.getElementById('edit-firstName').value = firstName;
-        document.getElementById('edit-lastName').value = lastName;
-        document.getElementById('edit-age').value = age;
-        document.getElementById('edit-email').value = email;
-        document.getElementById('edit-password').value = '';
-
-        const rolesString = this.getAttribute('data-roles');
-        const selectedRoles = rolesString.replace(/\[|\]/g, '').split(',');
-
-        const roleOptions = document.getElementById('edit-roles').options;
-        for (let i = 0; i < roleOptions.length; i++) {
-          roleOptions[i].selected = selectedRoles.includes(roleOptions[i].text);
-        }
-      });
-    });
-  });
-</script>
-<script>
-  document.addEventListener("DOMContentLoaded", function () {
-    const editButtons = document.querySelectorAll('.editBtn');
-
-    editButtons.forEach(button => {
-      button.addEventListener('click', function () {
-        const id = this.getAttribute('data-id');
-        const firstName = this.getAttribute('data-firstname');
-        const lastName = this.getAttribute('data-lastname');
-        const age = this.getAttribute('data-age');
-        const email = this.getAttribute('data-email');
-        const rolesString = this.getAttribute('data-roles');
-
-        // Set form field values
-        document.getElementById('edit-id').value = id || '';
-        document.getElementById('edit-firstName').value = firstName || '';
-        document.getElementById('edit-lastName').value = lastName || '';
-        document.getElementById('edit-age').value = age || '';
-        document.getElementById('edit-email').value = email || '';
-
-        // Handle roles
-        const roleSelect = document.getElementById('edit-roles');
-        const selectedRoles = rolesString ? rolesString.replace(/\[|\]/g, '').split(',').map(role => role.trim()) : [];
-
-        // Reset all options
-        Array.from(roleSelect.options).forEach(option => {
-          option.selected = false;
-        });
-
-        // Select matching roles
-        Array.from(roleSelect.options).forEach(option => {
-          if (selectedRoles.includes(option.text)) {
-            option.selected = true;
-          }
-        });
-      });
-    });
-  });
-</script>
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script>
-  function confirmAddUser(event) {
-    event.preventDefault();
-
-    Swal.fire({
-      title: 'Are you sure?',
-      text: 'This will add a new user to the system.',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Yes, add user!',
-      cancelButtonText: 'Cancel',
-      confirmButtonColor: '#0d6efd',
-      cancelButtonColor: '#dc3545'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        document.getElementById("addUserForm").submit();
-      }
-    });
-    return false;
-  }
-</script>
-<script>
-  document.addEventListener("DOMContentLoaded", function () {
-    const deleteButtons = document.querySelectorAll('.deleteBtn');
-
-    deleteButtons.forEach(button => {
-      button.addEventListener('click', function () {
-        const form = this.closest('form');
-
-        Swal.fire({
-          title: 'Are you sure?',
-          text: "This user will be permanently deleted!",
-          icon: 'warning',
-          showCancelButton: true,
-          confirmButtonText: 'Yes, delete!',
-          cancelButtonText: 'Cancel',
-          confirmButtonColor: '#0d6efd',  // Blue
-          cancelButtonColor: '#dc3545'   // Red
-        }).then((result) => {
-          if (result.isConfirmed) {
-            form.submit();
-          }
-        });
-      });
-    });
-  });
-</script>
-<script>
-  document.addEventListener("DOMContentLoaded", function () {
-    const editForm = document.getElementById("editUserForm");
-
-    editForm.addEventListener("submit", function (event) {
-      event.preventDefault();
-
-      Swal.fire({
-        title: 'Confirm Edit',
-        text: 'Are you sure you want to update this user?',
-        icon: 'info',
-        showCancelButton: true,
-        confirmButtonText: 'Yes, update!',
-        cancelButtonText: 'Cancel',
-        confirmButtonColor: '#0d6efd',
-        cancelButtonColor: '#dc3545'
-      }).then((result) => {
-        if (result.isConfirmed) {
-          editForm.submit();
-        }
-      });
-    });
-  });
-</script>
-
+<script src="/js/admin.js"></script>
 
 </body>
 </html>
