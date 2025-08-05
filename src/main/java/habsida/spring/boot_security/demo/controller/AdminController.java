@@ -95,38 +95,14 @@ public class AdminController {
     ) {
         try {
             userService.updateUser(id, firstName, lastName, age, email, password, roleIds);
-            User user = userService.findUserById(id);
-            if (user == null) {
-                redirectAttributes.addFlashAttribute("errors", List.of(new FieldError("user", "id", "User not found")));
-                return "redirect:/admin";
-            }
 
-            // Update user fields
-            user.setFirstName(firstName);
-            user.setLastName(lastName);
-            user.setAge(age);
-            user.setEmail(email);
-            user.setUsername(email);
-
-            if (password != null && !password.isEmpty()) {
-                user.setPassword(password);
-            }
-
-            Set<Role> updatedRoles = roleIds.stream()
-                    .map(roleId -> roleService.findById(roleId)
-                            .orElseThrow(() -> new RuntimeException("Role not found with ID: " + roleId)))
-                    .collect(Collectors.toSet());
-            user.setRoles(updatedRoles);
-
-            // Save the updated user
-            userService.saveUser(user);
-
+            // If the admin edited their own account, force re-login
             if (SecurityContextHolder.getContext().getAuthentication().getName().equals(email)) {
                 SecurityContextHolder.clearContext();
                 session.invalidate();
             }
 
-            redirectAttributes.addFlashAttribute("editSuccess", "User updated successfully");
+            redirectAttributes.addFlashAttribute("editSuccess", "User updated successfully!");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errors", List.of(new FieldError("user", "general", "Failed to update user: " + e.getMessage())));
         }
