@@ -52,15 +52,14 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         user.setLastName(lastName);
         user.setAge(age);
         user.setEmail(email);
+        user.setUsername(email);
 
-        // Encode and update the password
-        String encodedPassword = passwordEncoder.encode(password);
-        user.setPassword(encodedPassword);
+        if (password != null && !password.trim().isEmpty()) {
+            user.setPassword(passwordEncoder.encode(password));
+        }
 
-        // Update roles
         Set<Role> roles = new HashSet<>(roleRepository.findAllById(roleIds));
         user.setRoles(roles);
-
 
         userRepository.save(user);
     }

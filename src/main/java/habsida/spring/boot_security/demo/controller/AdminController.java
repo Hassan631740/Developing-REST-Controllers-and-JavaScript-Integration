@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.FieldError;
@@ -25,13 +24,11 @@ public class AdminController {
 
     private final UserServiceImpl userService;
     private final RoleService roleService;
-    private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public AdminController(UserServiceImpl userService, RoleService roleService, PasswordEncoder passwordEncoder) {
+    public AdminController(UserServiceImpl userService, RoleService roleService) {
         this.userService = userService;
         this.roleService = roleService;
-        this.passwordEncoder = passwordEncoder;
     }
 
     @GetMapping("/admin")
@@ -94,34 +91,11 @@ public class AdminController {
             HttpSession session
     ) {
         try {
+            String currentUserEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+            
             userService.updateUser(id, firstName, lastName, age, email, password, roleIds);
-            User user = userService.findUserById(id);
-            if (user == null) {
-                redirectAttributes.addFlashAttribute("errors", List.of(new FieldError("user", "id", "User not found")));
-                return "redirect:/admin";
-            }
-
-            // Update user fields
-            user.setFirstName(firstName);
-            user.setLastName(lastName);
-            user.setAge(age);
-            user.setEmail(email);
-            user.setUsername(email);
-
-            if (password != null && !password.isEmpty()) {
-                user.setPassword(password);
-            }
-
-            Set<Role> updatedRoles = roleIds.stream()
-                    .map(roleId -> roleService.findById(roleId)
-                            .orElseThrow(() -> new RuntimeException("Role not found with ID: " + roleId)))
-                    .collect(Collectors.toSet());
-            user.setRoles(updatedRoles);
-
-            // Save the updated user
-            userService.saveUser(user);
-
-            if (SecurityContextHolder.getContext().getAuthentication().getName().equals(email)) {
+            
+            if (currentUserEmail.equals(email)) {
                 SecurityContextHolder.clearContext();
                 session.invalidate();
             }
