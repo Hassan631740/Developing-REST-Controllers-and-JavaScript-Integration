@@ -94,7 +94,7 @@ public class AdminController {
             HttpSession session
     ) {
         try {
-            userService.updateUser(id, firstName, lastName, age, email, password, roleIds);
+            // Find the existing user
             User user = userService.findUserById(id);
             if (user == null) {
                 redirectAttributes.addFlashAttribute("errors", List.of(new FieldError("user", "id", "User not found")));
@@ -108,10 +108,12 @@ public class AdminController {
             user.setEmail(email);
             user.setUsername(email);
 
-            if (password != null && !password.isEmpty()) {
+            // Only update password if provided
+            if (password != null && !password.trim().isEmpty()) {
                 user.setPassword(password);
             }
 
+            // Update roles
             Set<Role> updatedRoles = roleIds.stream()
                     .map(roleId -> roleService.findById(roleId)
                             .orElseThrow(() -> new RuntimeException("Role not found with ID: " + roleId)))
@@ -121,6 +123,7 @@ public class AdminController {
             // Save the updated user
             userService.saveUser(user);
 
+            // If the updated user is the currently logged-in user, invalidate session
             if (SecurityContextHolder.getContext().getAuthentication().getName().equals(email)) {
                 SecurityContextHolder.clearContext();
                 session.invalidate();

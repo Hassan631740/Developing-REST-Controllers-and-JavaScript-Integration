@@ -53,14 +53,15 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         user.setAge(age);
         user.setEmail(email);
 
-        // Encode and update the password
-        String encodedPassword = passwordEncoder.encode(password);
-        user.setPassword(encodedPassword);
+        // Only encode and update password if provided
+        if (password != null && !password.trim().isEmpty()) {
+            String encodedPassword = passwordEncoder.encode(password);
+            user.setPassword(encodedPassword);
+        }
 
         // Update roles
         Set<Role> roles = new HashSet<>(roleRepository.findAllById(roleIds));
         user.setRoles(roles);
-
 
         userRepository.save(user);
     }
