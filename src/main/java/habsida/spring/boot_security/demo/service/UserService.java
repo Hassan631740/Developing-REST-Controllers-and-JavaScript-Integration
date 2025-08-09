@@ -11,13 +11,11 @@ import java.util.Set;
 @Service
 public interface UserService {
 
-    Optional<User> getLoggedInUserByEmail(String email);
-
     void updateUser(Long id, String firstName, String lastName, int age, String email, String password, List<Long> roleIds);
 
     List<User> findAllWithRoles();
 
-    void deleteUserById(Long id);
+    void deleteUser(Long id);
 
     List<User> findAllUsers();
 
@@ -29,12 +27,9 @@ public interface UserService {
 
     void saveUser(User user);
 
-    void deleteUser(Long id);
+    void saveUserWithRoles(User user, List<Long> roleIds);
 
     Set<Role> findAllRoles();
 
-    User findUserById(Long id);
-
-    Optional<Role> findRoleById(Long id);
-
+    void updateUserPhoto(String email, byte[] photo, String contentType);
 }

@@ -25,40 +25,56 @@ public class DataInitializer implements CommandLineRunner {
     private PasswordEncoder passwordEncoder;
 
     @Override
-    public void run(String... args) {
-        // Check and insert roles only if not present
-        Role userRole = roleRepository.findByName("USER").orElseGet(() -> roleRepository.save(new Role("USER")));
-        Role adminRole = roleRepository.findByName("ADMIN").orElseGet(() -> roleRepository.save(new Role("ADMIN")));
+    public void run(String... args) throws Exception {
+        // Create roles if they don't exist
+        Role adminRole = roleRepository.findByName("ADMIN")
+                .orElseGet(() -> {
+                    Role role = new Role();
+                    role.setName("ADMIN");
+                    return roleRepository.save(role);
+                });
 
+        Role userRole = roleRepository.findByName("USER")
+                .orElseGet(() -> {
+                    Role role = new Role();
+                    role.setName("USER");
+                    return roleRepository.save(role);
+                });
 
-        // Create admin user only if it doesn't exist
-        if (!userRepository.existsByEmail("admin@gmail.com")) {
+        // Create admin user if it doesn't exist
+        if (!userRepository.findByEmail("admin@gmail.com").isPresent()) {
             User admin = new User();
-            admin.setUsername("admin");
-            admin.setPassword(passwordEncoder.encode("admin"));
-            admin.setEmail("admin@gmail.com");
-            admin.setAge(23);
+            admin.setUsername("admin@gmail.com");
             admin.setFirstName("Hassan");
             admin.setLastName("Koroma");
+            admin.setAge(25);
+            admin.setEmail("admin@gmail.com");
+            admin.setPassword(passwordEncoder.encode("admin"));
+            admin.setActive(true);
+
             Set<Role> adminRoles = new HashSet<>();
             adminRoles.add(adminRole);
             adminRoles.add(userRole);
             admin.setRoles(adminRoles);
+
             userRepository.save(admin);
         }
 
-        // Create a normal user only if it doesn't exist
-        if (!userRepository.existsByEmail("user@gmail.com")) {
+        // Create regular user if it doesn't exist
+        if (!userRepository.findByEmail("user@gmail.com").isPresent()) {
             User user = new User();
-            user.setUsername("user");
-            user.setPassword(passwordEncoder.encode("user"));
-            user.setEmail("user@gmail.com");
-            user.setAge(33);
+            user.setUsername("user@gmail.com");
             user.setFirstName("Mohamed");
             user.setLastName("Kanu");
+            user.setAge(36);
+            user.setEmail("user@gmail.com");
+            user.setPassword(passwordEncoder.encode("user"));
+            user.setActive(true);
+
             Set<Role> userRoles = new HashSet<>();
             userRoles.add(userRole);
             user.setRoles(userRoles);
+
             userRepository.save(user);
         }
     }
