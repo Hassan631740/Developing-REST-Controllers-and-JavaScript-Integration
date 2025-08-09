@@ -29,6 +29,8 @@ public interface UserService {
 
     void saveUser(User user);
 
+    void saveUserWithRoles(User user, List<Long> roleIds);
+
     void deleteUser(Long id);
 
     Set<Role> findAllRoles();

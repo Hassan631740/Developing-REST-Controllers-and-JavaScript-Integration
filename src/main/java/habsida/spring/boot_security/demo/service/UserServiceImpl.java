@@ -15,6 +15,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
+import org.springframework.security.core.GrantedAuthority;
 
 @Service
 public class UserServiceImpl implements UserService, UserDetailsService {
@@ -53,14 +55,15 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         user.setAge(age);
         user.setEmail(email);
 
-        // Encode and update the password
-        String encodedPassword = passwordEncoder.encode(password);
-        user.setPassword(encodedPassword);
+        // Only update password if provided
+//        if (password != null && !password.trim().isEmpty()) {
+//            String encodedPassword = passwordEncoder.encode(password);
+//            user.setPassword(encodedPassword);
+//        }
 
         // Update roles
         Set<Role> roles = new HashSet<>(roleRepository.findAllById(roleIds));
         user.setRoles(roles);
-
 
         userRepository.save(user);
     }
@@ -70,17 +73,17 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         // Fetch existing user if it's an update
         Optional<User> existingUserOpt = user.getId() != null ? userRepository.findById(user.getId()) : Optional.empty();
 
-        if (existingUserOpt.isPresent()) {
-            User existingUser = existingUserOpt.get();
-            // Preserve existing password if not changed
-            if (user.getPassword() == null || user.getPassword().isBlank()) {
-                user.setPassword(existingUser.getPassword());
-            } else {
-                user.setPassword(passwordEncoder.encode(user.getPassword()));
-            }
-        } else {
-            user.setPassword(passwordEncoder.encode(user.getPassword()));
-        }
+//        if (existingUserOpt.isPresent()) {
+//            User existingUser = existingUserOpt.get();
+//            // Preserve existing password if not changed
+//            if (user.getPassword() == null || user.getPassword().isBlank()) {
+//                user.setPassword(existingUser.getPassword());
+//            } else {
+//                user.setPassword(passwordEncoder.encode(user.getPassword()));
+//            }
+//        } else {
+//            user.setPassword(passwordEncoder.encode(user.getPassword()));
+//        }
 
         // Always sync username to email
         user.setUsername(user.getEmail());
@@ -93,6 +96,26 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         }
         user.setRoles(resolvedRoles);
 
+        userRepository.save(user);
+    }
+
+    @Override
+    public void saveUserWithRoles(User user, List<Long> roleIds) {
+        // Encode password
+//        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        
+        // Set username to email
+        user.setUsername(user.getEmail());
+        
+        // Set roles based on role IDs
+        Set<Role> roles = new HashSet<>();
+        for (Long roleId : roleIds) {
+            Role role = roleService.findById(roleId)
+                    .orElseThrow(() -> new RuntimeException("Role not found with ID: " + roleId));
+            roles.add(role);
+        }
+        user.setRoles(roles);
+        
         userRepository.save(user);
     }
 
@@ -143,8 +166,31 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+        System.out.println("=== Authentication Debug ===");
+        System.out.println("Attempting to load user with email: " + email);
+        
+        Optional<User> userOpt = userRepository.findByEmail(email);
+        
+        if (userOpt.isPresent()) {
+            User user = userOpt.get();
+            System.out.println("User found: " + user.getEmail());
+            System.out.println("User username field: " + user.getUsername());
+            System.out.println("User password (encoded): " + user.getPassword());
+            System.out.println("User roles: " + user.getRoles().stream().map(Role::getName).collect(Collectors.toList()));
+            System.out.println("User authorities: " + user.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList()));
+            System.out.println("User enabled: " + user.isEnabled());
+            System.out.println("User account non-expired: " + user.isAccountNonExpired());
+            System.out.println("User account non-locked: " + user.isAccountNonLocked());
+            System.out.println("User credentials non-expired: " + user.isCredentialsNonExpired());
+            System.out.println("=== End Authentication Debug ===");
+            return user;
+        } else {
+            System.out.println("User not found with email: " + email);
+            System.out.println("Available users in database:");
+            userRepository.findAll().forEach(u -> System.out.println("  - " + u.getEmail() + " (username: " + u.getUsername() + ")"));
+            System.out.println("=== End Authentication Debug ===");
+            throw new UsernameNotFoundException("User not found with email: " + email);
+        }
     }
 
 }

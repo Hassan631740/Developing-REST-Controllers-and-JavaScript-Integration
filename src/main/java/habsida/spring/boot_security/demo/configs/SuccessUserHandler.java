@@ -21,13 +21,13 @@ public class SuccessUserHandler implements AuthenticationSuccessHandler {
         Set<String> roles = AuthorityUtils.authorityListToSet(authentication.getAuthorities());
 
         if (roles.contains("ROLE_ADMIN")){
+            request.getSession().setAttribute("loginSuccess", true);
             response.sendRedirect("/admin");
         } else if (roles.contains("ROLE_USER")) {
-            response.sendRedirect("user");
-
-        }else {
+            request.getSession().setAttribute("loginSuccess", true);
+            response.sendRedirect("/user/dashboard");
+        } else {
             response.sendRedirect("/access-denied");
         }
-
     }
 }

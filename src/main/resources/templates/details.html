@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Details Page</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 flex flex-col items-center p-6">
+<div class="w-full max-w-3xl bg-white shadow-lg rounded-lg overflow-hidden">
+    <!-- Header Section -->
+    <div class="bg-blue-600 text-white px-6 py-4 text-xl font-semibold">
+        Transaction Details
+    </div>
+    <!-- Content Section -->
+    <div class="p-6 space-y-4">
+        <div class="flex justify-between">
+            <span class="font-medium text-gray-700">Transaction ID:</span>
+            <span class="text-gray-600">#1000210486</span>
+        </div>
+        <div class="flex justify-between">
+            <span class="font-medium text-gray-700">Amount:</span>
+            <span class="text-gray-600">$450.00</span>
+        </div>
+        <div class="flex justify-between">
+            <span class="font-medium text-gray-700">Date:</span>
+            <span class="text-gray-600">05 Aug 2025</span>
+        </div>
+        <div class="flex justify-between">
+            <span class="font-medium text-gray-700">Status:</span>
+            <span class="text-green-600 font-semibold">Completed</span>
+        </div>
+        <div class="flex justify-between">
+            <span class="font-medium text-gray-700">Payment Method:</span>
+            <span class="text-gray-600">Credit Card</span>
+        </div>
+    </div>
+    <!-- Footer -->
+    <div class="bg-gray-100 px-6 py-3 flex justify-end">
+        <button onclick="window.location.href='index.html'"
+                class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
+            Close
+        </button>
+    </div>
+</div>
+</body>
+</html>

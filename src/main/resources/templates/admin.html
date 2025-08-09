@@ -160,7 +160,7 @@
         <h5 class="modal-title" id="exampleModalLabel">Add New User</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <form id="addUserForm" method="post" th:action="@{/api/users}" th:object="${newUser}" onsubmit="return confirmAddUser(event)">
+      <form id="addUserForm" method="post" th:action="@{/admin/users}" th:object="${newUser}" onsubmit="return confirmAddUser(event)">
         <div class="modal-body">
           <input type="text" th:field="*{firstName}" class="form-control mb-2" placeholder="First Name" required>
           <input type="text" th:field="*{lastName}" class="form-control mb-2" placeholder="Last Name" required>
